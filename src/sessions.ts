@@ -346,7 +346,13 @@ export function sendToSession(
 export function getSessionOutput(
   sessionId: string,
   since?: number
-): { output: string; offset: number; status: SessionStatus; exitCode?: number | null; completedSuccessfully?: boolean } {
+): {
+  output: string;
+  offset: number;
+  status: SessionStatus;
+  exitCode?: number | null;
+  completedSuccessfully?: boolean;
+} {
   const session = sessions.get(sessionId);
   if (!session) throw new Error(`Session ${sessionId} not found`);
 
@@ -365,7 +371,13 @@ export async function waitForOutput(
   sessionId: string,
   since?: number,
   timeoutMs: number = 30000
-): Promise<{ output: string; offset: number; status: SessionStatus; exitCode?: number | null; completedSuccessfully?: boolean }> {
+): Promise<{
+  output: string;
+  offset: number;
+  status: SessionStatus;
+  exitCode?: number | null;
+  completedSuccessfully?: boolean;
+}> {
   const deadline = Date.now() + timeoutMs;
   const startOffset = since ?? 0;
 
