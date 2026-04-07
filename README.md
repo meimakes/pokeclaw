@@ -1,4 +1,4 @@
-# coding-agent-mcp
+# pokeclaw
 
 An MCP server (SSE transport) that lets any MCP client spawn and control [Codex CLI](https://github.com/openai/codex) and [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sessions on the host machine.
 
@@ -37,8 +37,8 @@ Only the agent(s) you plan to use need to be installed. Claude Code requires OAu
 ## Setup
 
 ```bash
-git clone https://github.com/meimakes/coding-agent-mcp.git
-cd coding-agent-mcp
+git clone https://github.com/meimakes/pokeclaw.git
+cd pokeclaw
 npm install
 npm run build
 ```
@@ -212,14 +212,14 @@ The recommended approach is a **LaunchAgent** (not a LaunchDaemon):
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>dev.coding-agent-mcp.main</string>
+    <string>dev.pokeclaw.main</string>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/homebrew/bin/node</string>
-        <string>/path/to/coding-agent-mcp/dist/index.js</string>
+        <string>/path/to/pokeclaw/dist/index.js</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/path/to/coding-agent-mcp</string>
+    <string>/path/to/pokeclaw</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>AUTH_TOKEN</key>
@@ -238,19 +238,19 @@ The recommended approach is a **LaunchAgent** (not a LaunchDaemon):
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/coding-agent-mcp.log</string>
+    <string>/tmp/pokeclaw.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/coding-agent-mcp.log</string>
+    <string>/tmp/pokeclaw.log</string>
     <key>ThrottleInterval</key>
     <integer>15</integer>
 </dict>
 </plist>
 ```
 
-Save to `~/Library/LaunchAgents/dev.coding-agent-mcp.main.plist`, then:
+Save to `~/Library/LaunchAgents/dev.pokeclaw.main.plist`, then:
 
 ```bash
-launchctl load ~/Library/LaunchAgents/dev.coding-agent-mcp.main.plist
+launchctl load ~/Library/LaunchAgents/dev.pokeclaw.main.plist
 ```
 
 LaunchAgents run in the Aqua (GUI) session, which keeps keychain access alive across reboots. `KeepAlive` restarts the server if it crashes.

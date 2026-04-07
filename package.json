@@ -1,5 +1,5 @@
 {
-  "name": "coding-agent-mcp",
+  "name": "pokeclaw",
   "version": "1.0.0",
   "description": "MCP server for spawning and controlling Codex CLI and Claude Code sessions",
   "type": "module",
@@ -32,11 +32,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meimakes/coding-agent-mcp.git"
+    "url": "git+https://github.com/meimakes/pokeclaw.git"
   },
-  "homepage": "https://github.com/meimakes/coding-agent-mcp#readme",
+  "homepage": "https://github.com/meimakes/pokeclaw#readme",
   "bugs": {
-    "url": "https://github.com/meimakes/coding-agent-mcp/issues"
+    "url": "https://github.com/meimakes/pokeclaw/issues"
   },
   "engines": {
     "node": ">=20"

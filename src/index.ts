@@ -58,7 +58,7 @@ async function assertPathAllowed(targetPath: string): Promise<string> {
 // --- MCP Server ---
 function createServer(): McpServer {
   const server = new McpServer({
-    name: "coding-agent-mcp",
+    name: "pokeclaw",
     version: "1.0.0",
   });
 

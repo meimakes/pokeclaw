@@ -1,12 +1,12 @@
 # Contributing
 
-Thanks for your interest in contributing to coding-agent-mcp!
+Thanks for your interest in contributing to pokeclaw!
 
 ## Getting started
 
 ```bash
-git clone https://github.com/meimakes/coding-agent-mcp.git
-cd coding-agent-mcp
+git clone https://github.com/meimakes/pokeclaw.git
+cd pokeclaw
 npm install
 npm run dev
 ```
@@ -36,7 +36,7 @@ Add tests for new functionality in `src/*.test.ts` files.
 
 ## Reporting issues
 
-Open an issue at https://github.com/meimakes/coding-agent-mcp/issues with:
+Open an issue at https://github.com/meimakes/pokeclaw/issues with:
 - Steps to reproduce
 - Expected vs actual behavior
 - Node.js version and OS
