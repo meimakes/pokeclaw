@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "child_process";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, realpathSync } from "fs";
 import { isAbsolute, join, resolve } from "path";
 import { v4 as uuidv4 } from "uuid";
 import type { AgentType, Session, SessionInfo, SessionProcess, SessionStatus } from "./types.js";
@@ -19,6 +19,14 @@ function log(...args: unknown[]): void {
 
 const IDLE_TIMEOUT = parseInt(process.env.IDLE_TIMEOUT || "1800000", 10);
 export const WORKSPACE_DIR = process.env.WORKSPACE_DIR || process.cwd();
+
+// Resolve agent binaries once at startup so spawns use absolute paths.
+const CODEX_BINARY = resolveBinary(["codex", "/usr/local/bin/codex", "/opt/homebrew/bin/codex"]);
+const CLAUDE_BINARY = resolveBinary([
+  "claude",
+  "/opt/homebrew/bin/claude",
+  "/usr/local/bin/claude",
+]);
 
 // Only these env vars are forwarded to child processes.
 // Prevents leaking AUTH_TOKEN, internal service credentials, etc.
@@ -149,17 +157,24 @@ function resolveBinary(candidates: string[]): string | null {
   return null;
 }
 
+// Canonicalized workspace root, resolved once at startup.
+const REAL_WORKSPACE = realpathSync(WORKSPACE_DIR);
+
 function resolveSessionCwd(cwd: string): string {
-  const resolved = isAbsolute(cwd) ? cwd : resolve(WORKSPACE_DIR, cwd);
-  // Prevent traversal outside WORKSPACE_DIR for relative paths
-  if (!isAbsolute(cwd) && !resolved.startsWith(WORKSPACE_DIR + "/") && resolved !== WORKSPACE_DIR) {
-    throw new Error(`Session cwd escapes workspace: ${cwd}`);
-  }
+  const resolved = isAbsolute(cwd) ? resolve(cwd) : resolve(WORKSPACE_DIR, cwd);
+
+  // Create the directory before canonicalizing so realpath has something to resolve
   if (!existsSync(resolved)) {
     mkdirSync(resolved, { recursive: true });
     log(`Created session directory ${resolved}`);
   }
-  return resolved;
+
+  // Canonicalize to resolve symlinks, then check against the real workspace root
+  const real = realpathSync(resolved);
+  if (real !== REAL_WORKSPACE && !real.startsWith(REAL_WORKSPACE + "/")) {
+    throw new Error(`Session cwd escapes workspace: ${cwd} (resolved to ${real})`);
+  }
+  return real;
 }
 
 export async function startSession(
@@ -191,8 +206,7 @@ export async function startSession(
       throw new Error("node-pty is not available. Cannot spawn Codex sessions.");
     }
 
-    const codexBinary = resolveBinary(["codex", "/usr/local/bin/codex", "/opt/homebrew/bin/codex"]);
-    if (!codexBinary) {
+    if (!CODEX_BINARY) {
       throw new Error("Codex CLI not found in PATH on the MCP host");
     }
 
@@ -204,7 +218,7 @@ export async function startSession(
     }
 
     const escapedTask = task.replace(/'/g, "'\\''");
-    const ptyProcess = pty.spawn(codexBinary, ["--yolo", "exec", escapedTask], {
+    const ptyProcess = pty.spawn(CODEX_BINARY, ["--yolo", "exec", escapedTask], {
       name: "xterm-256color",
       cols: 200,
       rows: 50,
@@ -231,17 +245,12 @@ export async function startSession(
     };
   } else {
     // claude-code: use regular spawn with --print mode
-    const claudeBinary = resolveBinary([
-      "claude",
-      "/opt/homebrew/bin/claude",
-      "/usr/local/bin/claude",
-    ]);
-    if (!claudeBinary) {
+    if (!CLAUDE_BINARY) {
       throw new Error("Claude Code CLI not found in PATH on the MCP host");
     }
 
     const child = spawn(
-      claudeBinary,
+      CLAUDE_BINARY,
       [
         "--print",
         "--verbose",
