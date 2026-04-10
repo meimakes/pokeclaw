@@ -26,7 +26,61 @@ An MCP server (SSE transport) that lets any MCP client spawn and control [Codex 
 - Per-IP rate limiting and SSE connection caps
 - Graceful shutdown with SIGTERM/SIGINT handling
 
-## Prerequisites
+## Deploy to Fly.io
+
+If you'd rather run pokeclaw in the cloud instead of locally, you can deploy to [Fly.io](https://fly.io) in a few minutes.
+
+### Prerequisites
+
+- A [Fly.io account](https://fly.io/app/sign-up) (free tier works)
+- [`flyctl` CLI](https://fly.io/docs/flyctl/install/) installed
+
+### Quick start
+
+```bash
+# Clone and enter the repo
+git clone https://github.com/meimakes/pokeclaw.git
+cd pokeclaw
+
+# Launch on Fly (creates the app + a persistent volume for /workspace)
+fly launch --copy-config --yes
+
+# Set your auth token (clients use this to connect)
+fly secrets set AUTH_TOKEN=<pick-a-secret>
+
+# Forward API keys for the agents you plan to use
+fly secrets set CHILD_ENV_OPENAI_API_KEY=<your-openai-key>      # for Codex
+fly secrets set CHILD_ENV_ANTHROPIC_API_KEY=<your-anthropic-key> # for Claude Code
+
+# Deploy
+fly deploy
+```
+
+Your server will be available at `https://<app-name>.fly.dev`. Point your MCP client at:
+
+```json
+{
+  "mcpServers": {
+    "coding-agent": {
+      "url": "https://<app-name>.fly.dev/sse",
+      "headers": {
+        "Authorization": "Bearer <your-AUTH_TOKEN>"
+      }
+    }
+  }
+}
+```
+
+### Notes
+
+- **Persistent storage**: The `fly.toml` mounts a volume at `/workspace` so session data survives restarts. Fly creates the volume automatically on first deploy.
+- **Region**: Defaults to `sjc` (San Jose). Change `primary_region` in `fly.toml` or pass `--region` to `fly launch`.
+- **Scaling**: This is a stateful, single-instance service. The config uses `auto_stop_machines = "suspend"` to save costs when idle, and `auto_start_machines = true` to wake on incoming requests.
+- **Agent CLIs**: The Dockerfile installs both `@anthropic-ai/claude-code` and `@openai/codex` globally. Sessions use `CHILD_ENV_*` secrets as API keys — `AUTH_TOKEN` is never forwarded to child processes.
+
+## Local Setup
+
+### Prerequisites
 
 - Node.js 20+
 - [`codex` CLI](https://github.com/openai/codex) installed globally (for Codex sessions): `npm install -g @openai/codex`
@@ -34,7 +88,7 @@ An MCP server (SSE transport) that lets any MCP client spawn and control [Codex 
 
 Only the agent(s) you plan to use need to be installed. Claude Code requires OAuth login (`claude login`); Codex requires an `OPENAI_API_KEY`.
 
-## Setup
+### Build
 
 ```bash
 git clone https://github.com/meimakes/pokeclaw.git
@@ -43,7 +97,7 @@ npm install
 npm run build
 ```
 
-## Configuration
+### Configuration
 
 Set environment variables (or copy `.env.example` to `.env`):
 
@@ -58,7 +112,7 @@ Set environment variables (or copy `.env.example` to `.env`):
 | `RATE_LIMIT_RPM` | No | `120` | Max requests per minute per IP on POST /messages |
 | `CHILD_ENV_*` | No | — | Extra env vars forwarded to child processes (prefix stripped) |
 
-## Running
+### Running
 
 ```bash
 # Production
@@ -68,7 +122,7 @@ AUTH_TOKEN=my-secret npm start
 AUTH_TOKEN=my-secret npm run dev
 ```
 
-## MCP Client Configuration
+### MCP Client Configuration
 
 Add to your MCP client config:
 
