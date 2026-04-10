@@ -49,8 +49,9 @@ fly launch --copy-config --yes
 fly secrets set AUTH_TOKEN=<pick-a-secret>
 
 # Forward API keys for the agents you plan to use
-fly secrets set CHILD_ENV_OPENAI_API_KEY=<your-openai-key>      # for Codex
-fly secrets set CHILD_ENV_ANTHROPIC_API_KEY=<your-anthropic-key> # for Claude Code
+# If using API keys instead of OAuth, forward them to child processes
+fly secrets set CHILD_ENV_OPENAI_API_KEY=<your-openai-key>      # optional, for Codex
+fly secrets set CHILD_ENV_ANTHROPIC_API_KEY=<your-anthropic-key> # optional, for Claude Code
 
 # Deploy
 fly deploy
@@ -86,7 +87,7 @@ Your server will be available at `https://<app-name>.fly.dev`. Point your MCP cl
 - [`codex` CLI](https://github.com/openai/codex) installed globally (for Codex sessions): `npm install -g @openai/codex`
 - [`claude` CLI](https://docs.anthropic.com/en/docs/claude-code/getting-started) installed globally (for Claude Code sessions): `npm install -g @anthropic-ai/claude-code`
 
-Only the agent(s) you plan to use need to be installed. Claude Code requires OAuth login (`claude login`); Codex requires an `OPENAI_API_KEY`.
+Only the agent(s) you plan to use need to be installed. Both require OAuth login (`claude login` / `codex login`).
 
 ### Build
 
@@ -355,7 +356,7 @@ Ensure the `PATH` in your LaunchAgent or environment puts the desired version fi
 ### Sessions exit immediately with code 1
 
 Check the session output via `session_output` — it includes the error message. Common causes:
-- Missing API key (`OPENAI_API_KEY` for Codex, OAuth login for Claude Code)
+- Missing credentials (OAuth login or API key not configured for the agent)
 - CLI binary not found in `PATH`
 - Working directory doesn't exist
 
